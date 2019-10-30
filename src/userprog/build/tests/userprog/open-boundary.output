@@ -1,15 +1,25 @@
 Copying tests/userprog/open-boundary to scratch partition...
 Copying ../../tests/userprog/sample.txt to scratch partition...
-Writing command line to /tmp/9h0UsIaxsa.dsk...
-qemu -hda /tmp/9h0UsIaxsa.dsk -hdb /tmp/i2I8GEpMWw.dsk -hdc /tmp/O8eE0BqU7A.dsk -m 4 -net none -nographic -monitor null
+Writing command line to /tmp/O6AuCaakQ9.dsk...
+squish-pty bochs -q
+========================================================================
+                       Bochs x86 Emulator 2.5.1
+              Built from SVN snapshot on January 6, 2012
+                  Compiled on Oct 10 2012 at 11:12:02
+========================================================================
 Kernel command line: -q -f extract run open-boundary
 Pintos booting with 4,096 kB RAM...
-373 pages available in kernel pool.
-373 pages available in user pool.
-Calibrating timer...  157,081,600 loops/s.
-hd0:0: detected 145 sector (72 kB) disk, model "QEMU HARDDISK", serial "QM00001"
-hd0:1: detected 4,032 sector (1 MB) disk, model "QEMU HARDDISK", serial "QM00002"
-hd1:0: detected 101 sector (50 kB) disk, model "QEMU HARDDISK", serial "QM00003"
+487 pages available in kernel pool.
+Base is at: 0xc0031000
+487 pages available in user pool.
+Base is at: 0xc0219000
+free_start is at: 0xc002ff7f
+kernel_pages local var is at: 0xc002ff78
+pools are at: 0xc0113f00, 0xc0113f40
+Calibrating timer...  204,600 loops/s.
+hd0:0: detected 1,008 sector (504 kB) disk, model "Generic 1234", serial "BXHD00011"
+hd0:1: detected 4,032 sector (1 MB) disk, model "Generic 1234", serial "BXHD00012"
+hd1:0: detected 1,008 sector (504 kB) disk, model "Generic 1234", serial "BXHD00021"
 Formatting file system...done.
 Boot complete.
 Extracting ustar archive from scratch disk into file system...
@@ -22,12 +32,12 @@ Executing 'open-boundary':
 (open-boundary) end
 open-boundary: exit(0)
 Execution of 'open-boundary' complete.
-Timer: 80 ticks
-Thread: 30 idle ticks, 50 kernel ticks, 1 user ticks
+Timer: 340 ticks
+Thread: 30 idle ticks, 261 kernel ticks, 52 user ticks
 hd0:0: 0 reads, 0 writes
-hd0:1: 94 reads, 208 writes
+hd0:1: 91 reads, 208 writes
 hd1:0: 100 reads, 2 writes
-Console: 987 characters output
+Console: 1148 characters output
 Keyboard: 0 keys pressed
 Exception: 0 page faults
 Powering off...

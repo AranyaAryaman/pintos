@@ -1,3 +1,4 @@
+
 #ifndef THREADS_INIT_H
 #define THREADS_INIT_H
 
@@ -19,3 +20,4 @@ void power_off (void) NO_RETURN;
 void reboot (void);
 
 #endif /* threads/init.h */
+

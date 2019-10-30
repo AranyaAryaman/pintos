@@ -17,8 +17,6 @@
 #error TIMER_FREQ <= 1000 recommended
 #endif
 
-#define RECALCULATION_FREQ 4
-
 /* Number of timer ticks since OS booted. */
 static int64_t ticks;
 
@@ -100,23 +98,26 @@ timer_elapsed (int64_t then)
 void
 timer_sleep (int64_t ticks) 
 {
-  int64_t start = timer_ticks ();         /* The time at which timer_sleep is called. */
-  int64_t wakeup = start+ticks;           /* calculate the wake up time.  */
+  int64_t start = timer_ticks ();
+  int64_t wakeup_at = start + ticks;
+  
   ASSERT (intr_get_level () == INTR_ON);
-  
-  // set the priority temporarily MAX so that when it wakes up, it is processed first
-  // thread_set_temporarily_up();
+  /* 
+     while (timer_elapsed (start) < ticks) 
+     thread_yield (); 
+  */
 
-  // send the thread to sleeping state and adds to the sleeper list
-  thread_sleep(wakeup,start);
-  
-  // when the thread wakes up,
-  
-  // it wakes up other threads having the same wakeup time recursively.
-  // set_next_wakeup();
-  
-  // restore the priority of the thread to the original value
-  // thread_restore();	
+  if(ticks > 0)
+  {
+    /* Put the thread to sleep in timer sleep queue. */
+   // thread_priority_temporarily_up ();
+    thread_block_till (wakeup_at);
+
+    /* Thread must quit sleep and also free its successor
+       if that thread needs to wakeup at the same time. */
+   // thread_set_next_wakeup ();
+   // thread_priority_restore ();
+  }
 }
 
 /* Sleeps for approximately MS milliseconds.  Interrupts must be
@@ -145,7 +146,6 @@ timer_nsleep (int64_t ns)
 
 /* Busy-waits for approximately MS milliseconds.  Interrupts need
    not be turned on.
-
    Busy waiting wastes CPU cycles, and busy waiting with
    interrupts off for the interval between timer ticks or longer
    will cause timer ticks to be lost.  Thus, use timer_msleep()
@@ -158,7 +158,6 @@ timer_mdelay (int64_t ms)
 
 /* Sleeps for approximately US microseconds.  Interrupts need not
    be turned on.
-
    Busy waiting wastes CPU cycles, and busy waiting with
    interrupts off for the interval between timer ticks or longer
    will cause timer ticks to be lost.  Thus, use timer_usleep()
@@ -171,7 +170,6 @@ timer_udelay (int64_t us)
 
 /* Sleeps execution for approximately NS nanoseconds.  Interrupts
    need not be turned on.
-
    Busy waiting wastes CPU cycles, and busy waiting with
    interrupts off for the interval between timer ticks or longer
    will cause timer ticks to be lost.  Thus, use timer_nsleep()
@@ -195,25 +193,6 @@ timer_interrupt (struct intr_frame *args UNUSED)
 {
   ticks++;
   thread_tick ();
-  /*if (thread_mlfqs)
-  {
-    if (ticks % TIMER_FREQ == 0)
-    {
-      mlfqs_increment ();
-      mlfqs_load_avg ();
-      mlfqs_recalculate ();
-    }
-    else if (ticks % RECALCULATION_FREQ == 0)
-    {
-      mlfqs_increment ();
-      mlfqs_priority (thread_current ());
-
-    }
-  }*/
-  /* RECALCULATION_FREQ (4) % TIME_SLICE (4) == 0, TIMER_FREQ (100) % TIME_SLICE (4) == 0 */
-  /* These settings are on purpose! */
-  /* When the priority is updated, the current thread is 100% to yield. */
-  /* So don't worry, nothing would go wrong. The priority scheduling still works. */  
 }
 
 /* Returns true if LOOPS iterations waits for more than one timer
@@ -237,7 +216,6 @@ too_many_loops (unsigned loops)
 
 /* Iterates through a simple loop LOOPS times, for implementing
    brief delays.
-
    Marked NO_INLINE because code alignment can significantly
    affect timings, so that if this function was inlined
    differently in different places the results would be difficult
@@ -286,3 +264,4 @@ real_time_delay (int64_t num, int32_t denom)
   ASSERT (denom % 1000 == 0);
   busy_wait (loops_per_tick * num / 1000 * TIMER_FREQ / (denom / 1000)); 
 }
+

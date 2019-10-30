@@ -1,0 +1,56 @@
+Copying tests/vm/pt-write-code2 to scratch partition...
+Copying ../../tests/vm/sample.txt to scratch partition...
+Writing command line to /tmp/U4phccweSu.dsk...
+squish-pty bochs -q
+========================================================================
+                       Bochs x86 Emulator 2.5.1
+              Built from SVN snapshot on January 6, 2012
+                  Compiled on Oct 10 2012 at 11:12:02
+========================================================================
+Kernel command line: -q -f extract run pt-write-code2
+Pintos booting with 4,096 kB RAM...
+487 pages available in kernel pool.
+Base is at: 0xc0031000
+487 pages available in user pool.
+Base is at: 0xc0219000
+free_start is at: 0xc002ff7f
+kernel_pages local var is at: 0xc002ff78
+pools are at: 0xc0113f00, 0xc0113f40
+Calibrating timer...  204,600 loops/s.
+hd0:0: detected 1,008 sector (504 kB) disk, model "Generic 1234", serial "BXHD00011"
+hd0:1: detected 4,032 sector (1 MB) disk, model "Generic 1234", serial "BXHD00012"
+hd1:0: detected 1,008 sector (504 kB) disk, model "Generic 1234", serial "BXHD00021"
+hd1:1: detected 8,064 sector (3 MB) disk, model "Generic 1234", serial "BXHD00022"
+Formatting file system...done.
+Boot complete.
+Extracting ustar archive from scratch disk into file system...
+Putting 'pt-write-code2' into the file system...
+Putting 'sample.txt' into the file system...
+Erasing ustar archive...
+Executing 'pt-write-code2':
+(pt-write-code2) begin
+(pt-write-code2) open "sample.txt"
+Page fault at 0x80480a0: rights violation error writing page in kernel context.
+Interrupt 0x0e (#PF Page-Fault Exception) at eip=0xc0107a4b
+ cr2=080480a0 error=00000003
+ eax=0000003d ebx=00000001 ecx=c003920c edx=00000000
+ esi=080480a0 edi=080480a0 esp=c011392c ebp=c003ced4
+ cs=0008 ds=0010 es=0010 ss=3ec4
+Kernel PANIC at ../../userprog/exception.c:101 in kill(): Kernel bug - unexpected interrupt in kernel
+Call stack: 0xc003cdc8Page fault at 0x65: not present error reading page in kernel context.
+Interrupt 0x0e (#PF Page-Fault Exception) at eip=0xc01061bf
+ cr2=00000065 error=00000000
+ eax=00000065 ebx=00000065 ecx=c003ccf4 edx=000003d4
+ esi=c010ee28 edi=c0110aad esp=c01101e7 ebp=c003cd88
+ cs=0008 ds=0010 es=0010 ss=cdc8
+Kernel PANIC recursion at ../../userprog/exception.c:101 in kill().
+Timer: 389 ticks
+Thread: 30 idle ticks, 240 kernel ticks, 119 user ticks
+hd0:0: 0 reads, 0 writes
+hd0:1: 91 reads, 206 writes
+hd1:0: 99 reads, 2 writes
+hd1:1: 0 reads, 0 writes
+Console: 1977 characters output
+Keyboard: 0 keys pressed
+Exception: 2 page faults
+Powering off...

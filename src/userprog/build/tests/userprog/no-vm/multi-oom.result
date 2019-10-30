@@ -1,1 +1,4 @@
-PASS
+FAIL
+Kernel panic in run: PANIC at ../../threads/thread.c:537 in alloc_frame(): assertion `is_thread (t)' failed.
+Call stack: 0xc009dea4
+Translation of call stack:

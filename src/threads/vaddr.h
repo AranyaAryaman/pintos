@@ -8,7 +8,6 @@
 #include "threads/loader.h"
 
 /* Functions and macros for working with virtual addresses.
-
    See pte.h for functions and macros specifically for x86
    hardware page tables. */
 
@@ -45,7 +44,6 @@ static inline void *pg_round_down (const void *va) {
    physical address 0 is accessible at PHYS_BASE, physical
    address address 0x1234 at (uint8_t *) PHYS_BASE + 0x1234, and
    so on.
-
    This address also marks the end of user programs' address
    space.  Up to this point in memory, user programs are allowed
    to map whatever they like.  At this point and above, the

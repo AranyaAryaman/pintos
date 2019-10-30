@@ -1,14 +1,24 @@
 Copying tests/userprog/create-bound to scratch partition...
-Writing command line to /tmp/5vCbXJ90iE.dsk...
-qemu -hda /tmp/5vCbXJ90iE.dsk -hdb /tmp/ptPkK3coig.dsk -hdc /tmp/un00sSxHTW.dsk -m 4 -net none -nographic -monitor null
+Writing command line to /tmp/CHMBxIYVsL.dsk...
+squish-pty bochs -q
+========================================================================
+                       Bochs x86 Emulator 2.5.1
+              Built from SVN snapshot on January 6, 2012
+                  Compiled on Oct 10 2012 at 11:12:02
+========================================================================
 Kernel command line: -q -f extract run create-bound
 Pintos booting with 4,096 kB RAM...
-373 pages available in kernel pool.
-373 pages available in user pool.
-Calibrating timer...  157,081,600 loops/s.
-hd0:0: detected 145 sector (72 kB) disk, model "QEMU HARDDISK", serial "QM00001"
-hd0:1: detected 4,032 sector (1 MB) disk, model "QEMU HARDDISK", serial "QM00002"
-hd1:0: detected 99 sector (49 kB) disk, model "QEMU HARDDISK", serial "QM00003"
+487 pages available in kernel pool.
+Base is at: 0xc0031000
+487 pages available in user pool.
+Base is at: 0xc0219000
+free_start is at: 0xc002ff7f
+kernel_pages local var is at: 0xc002ff78
+pools are at: 0xc0113f00, 0xc0113f40
+Calibrating timer...  204,600 loops/s.
+hd0:0: detected 1,008 sector (504 kB) disk, model "Generic 1234", serial "BXHD00011"
+hd0:1: detected 4,032 sector (1 MB) disk, model "Generic 1234", serial "BXHD00012"
+hd1:0: detected 1,008 sector (504 kB) disk, model "Generic 1234", serial "BXHD00021"
 Formatting file system...done.
 Boot complete.
 Extracting ustar archive from scratch disk into file system...
@@ -20,12 +30,12 @@ Executing 'create-bound':
 (create-bound) end
 create-bound: exit(0)
 Execution of 'create-bound' complete.
-Timer: 80 ticks
-Thread: 30 idle ticks, 48 kernel ticks, 2 user ticks
+Timer: 323 ticks
+Thread: 30 idle ticks, 233 kernel ticks, 63 user ticks
 hd0:0: 0 reads, 0 writes
-hd0:1: 85 reads, 206 writes
+hd0:1: 82 reads, 206 writes
 hd1:0: 98 reads, 2 writes
-Console: 936 characters output
+Console: 1098 characters output
 Keyboard: 0 keys pressed
 Exception: 0 page faults
 Powering off...

@@ -3,9 +3,9 @@
 
 #include <debug.h>
 #include <list.h>
-#include <stdint.h>
-// #include "threads/alarm.h"
 #include "threads/synch.h"
+#include <stdint.h>
+#include "vm/page.h"
 
 /* States in a thread's life cycle. */
 enum thread_status
@@ -26,21 +26,16 @@ typedef int tid_t;
 #define PRI_DEFAULT 31                  /* Default priority. */
 #define PRI_MAX 63                      /* Highest priority. */
 
-
-#ifdef USERPROG
-# define RET_STATUS_DEFAULT 0xcdcdcdcd
-# define RET_STATUS_INVALID 0xdcdcdcdc
-#endif
+/** UP03 **/
+#define MAX_FILES 128
 
 
 /* A kernel thread or user process.
-
    Each thread structure is stored in its own 4 kB page.  The
    thread structure itself sits at the very bottom of the page
    (at offset 0).  The rest of the page is reserved for the
    thread's kernel stack, which grows downward from the top of
    the page (at offset 4 kB).  Here's an illustration:
-
         4 kB +---------------------------------+
              |          kernel stack           |
              |                |                |
@@ -62,22 +57,18 @@ typedef int tid_t;
              |               name              |
              |              status             |
         0 kB +---------------------------------+
-
    The upshot of this is twofold:
-
       1. First, `struct thread' must not be allowed to grow too
          big.  If it does, then there will not be enough room for
          the kernel stack.  Our base `struct thread' is only a
          few bytes in size.  It probably should stay well under 1
          kB.
-
       2. Second, kernel stacks must not be allowed to grow too
          large.  If a stack overflows, it will corrupt the thread
          state.  Thus, kernel functions should not allocate large
          structures or arrays as non-static local variables.  Use
          dynamic allocation with malloc() or palloc_get_page()
          instead.
-
    The first symptom of either of these problems will probably be
    an assertion failure in thread_current(), which checks that
    the `magic' member of the running thread's `struct thread' is
@@ -96,33 +87,42 @@ struct thread
     enum thread_status status;          /* Thread state. */
     char name[16];                      /* Name (for debugging purposes). */
     uint8_t *stack;                     /* Saved stack pointer. */
-    int orig_priority;                  /*original priority*/
-    int64_t wakeup_at;                  /*wakeup time*/
     int priority;                       /* Priority. */
-    int initial_priority;               /* Original Priority before donation (locks).  */
+    int old_priority;                   /* Old Priority. */
+    int64_t wakeup_at;                  /* Time to wait before unblock. */
     struct list_elem allelem;           /* List element for all threads list. */
-    int recent_cpu;
-    int nice;
+
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
-    struct list locks_acquired;         /*All locks acquired currently by the thread*/
-    struct lock *lock_seeking;               /* the lock, thread is seeking*/
-    int ret_status;
 
+    struct list_elem sleepers_elem;     /* List element for sleepers_list. */
+
+    int nice;                           /* Nice Value. */
+    int recent_cpu;                     /* Approximation of recent 
+                                           cpu time used by this thread. */
 #ifdef USERPROG
     /* Owned by userprog/process.c. */
     uint32_t *pagedir;                  /* Page directory. */
-    struct list files;                  /* all opened files */
-    struct thread *parent;              /* parent process */
-    struct list children;               /* all children process */
-    struct list_elem children_elem;     /* in children list */
-    bool exited;                        /* whether the thread is exited or not */
-    struct file *self;                  /* the image file on the disk */
-    struct semaphore wait;              /* semaphore for process_wait */
 #endif
 
+    struct list locks_acquired ; /* Locks accquired list */
+    bool no_yield;
     /* Owned by thread.c. */
     unsigned magic;                     /* Detects stack overflow. */
+    /** UP03 **/
+    struct file *files[MAX_FILES];
+
+    struct list_elem parent_elem;       /* list_elem for parent's children list */
+    struct thread *parent;              /* Pointer to parent of the list. */
+    struct list children;               /* List of children of 
+                                           the current thread. */
+    struct hash supp_page_table;
+    struct semaphore sema_ready;
+    struct semaphore sema_terminated;
+    struct semaphore sema_ack;
+    int return_status;
+    bool load_complete;
+    struct file *executable_file;
   };
 
 /* If false (default), use round-robin scheduler.
@@ -142,6 +142,9 @@ tid_t thread_create (const char *name, int priority, thread_func *, void *);
 void thread_block (void);
 void thread_unblock (struct thread *);
 
+void thread_block_till (int64_t);
+void thread_set_next_wakeup (void);
+
 struct thread *thread_current (void);
 tid_t thread_tid (void);
 const char *thread_name (void);
@@ -155,34 +158,30 @@ void thread_foreach (thread_action_func *, void *);
 
 int thread_get_priority (void);
 void thread_set_priority (int);
+int thread_get_effective_priority(struct thread*);
 
 int thread_get_nice (void);
 void thread_set_nice (int);
 int thread_get_recent_cpu (void);
 int thread_get_load_avg (void);
-void thread_set_temporarily_up(void);
-void thread_sleep(int64_t,int);
-void thread_restore(void);
-void set_next_wakeup(void);
-void thread_check_prio(void);
-void thread_wakeup (int64_t);
-void update_ready_list(void);
 
 
-void thread_add_lock (struct lock *);
-void thread_remove_lock (struct lock *);
-void thread_donate_priority (struct thread *);
+bool priority_cmp_mlfqs (const struct list_elem*, const struct list_elem*, void*);
+bool priority_cmp (const struct list_elem*, const struct list_elem*, void*);
+bool before (const struct list_elem*, const struct list_elem*, void*);
+
+void thread_priority_temporarily_up (void);
+void thread_priority_restore (void);
+
+
+void manager_wakeup(void);
+void timer_wakeup(void);
+
 void thread_update_priority (struct thread *);
+void thread_update_recent_cpu (struct thread *);
+void thread_update_load_avg (void);
 
-/* Utilities for 4.4BSD Scheduler. */
-void mlfqs_priority (struct thread *t);
-void mlfqs_recent_cpu (struct thread *t);
-void mlfqs_load_avg (void);
-void mlfqs_recalculate (void);
-void mlfqs_increment (void);
-
-struct thread *get_thread_by_tid (tid_t tid);
-
-static void managerial_thread_work2(void *AUX);
+struct thread *get_child_thread_from_id (int);
 
 #endif /* threads/thread.h */
+

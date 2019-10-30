@@ -91,7 +91,7 @@ main (void)
   palloc_init ();
   malloc_init ();
   paging_init ();
-
+  frame_table_init ();
   /* Segmentation. */
 #ifdef USERPROG
   tss_init ();
@@ -140,10 +140,9 @@ ram_init (void)
   /* The "BSS" is a segment that should be initialized to zeros.
      It isn't actually stored on disk or zeroed by the kernel
      loader, so we have to zero it ourselves.
-
      The start and end of the BSS segment is recorded by the
      linker as _start_bss and _end_bss.  See kernel.lds. */
-  extern char _start_bss, _end_bss;
+  char _start_bss, _end_bss;
   memset (&_start_bss, 0, &_end_bss - &_start_bss);
 
   /* Get RAM size from loader.  See loader.S. */
@@ -154,7 +153,6 @@ ram_init (void)
    kernel virtual mapping, and then sets up the CPU to use the
    new page directory.  Points base_page_dir to the page
    directory it creates.
-
    At the time this function is called, the active page table
    (set up by loader.S) only maps the first 4 MB of RAM, so we
    should not try to use extravagant amounts of memory.
@@ -164,7 +162,7 @@ paging_init (void)
 {
   uint32_t *pd, *pt;
   size_t page;
-  extern char _start, _end_kernel_text;
+  char _start, _end_kernel_text;
 
   pd = base_page_dir = palloc_get_page (PAL_ASSERT | PAL_ZERO);
   pt = NULL;
@@ -263,7 +261,6 @@ parse_options (char **argv)
 
   /* Initialize the random number generator based on the system
      time.  This has no effect if an "-rs" option was specified.
-
      When running under Bochs, this is not enough by itself to
      get a good seed value, because the pintos script sets the
      initial time to a predictable value, not to the local time,
@@ -282,7 +279,16 @@ run_task (char **argv)
   
   printf ("Executing '%s':\n", task);
 #ifdef USERPROG
-  process_wait (process_execute (task));
+  tid_t tid = process_execute (task);
+  struct thread *child = get_child_thread_from_id (tid);
+
+  if (child != NULL)
+  {
+    //sema_down (&child->sema_ready);
+    sema_up (&child->sema_ack);
+  }
+
+  process_wait (tid);
 #else
   run_test (task);
 #endif

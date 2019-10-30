@@ -18,7 +18,6 @@ threads/start.S
 threads/intr-stubs.S
 threads/vaddr.h
 threads/interrupt.h
-threads/FloatOps.h
 threads/interrupt.c
 threads/palloc.c
 threads/synch.h

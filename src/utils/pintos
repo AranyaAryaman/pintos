@@ -87,7 +87,7 @@ sub parse_command_line {
 
     $sim = "bochs" if !defined $sim;
     $debug = "none" if !defined $debug;
-    $vga = "window" if !defined $vga;
+    $vga = "none" if !defined $vga;
 
     undef $timeout, print "warning: disabling timeout with --$debug\n"
       if defined ($timeout) && $debug ne 'none';
@@ -938,15 +938,15 @@ sub exec_setitimer {
     exit (1);
 }
 
-sub SIGVTALRM {
-    use Config;
-    my $i = 0;
-    foreach my $name (split(' ', $Config{sig_name})) {
-	return $i if $name eq 'VTALRM';
-	$i++;
-    }
-    return 0;
-}
+#sub SIGVTALRM {
+   # use Config;
+    #my $i = 0;
+   # foreach my $name (split(' ', $Config{sig_name})) {
+#	return $i if $name eq 'VTALRM';
+#	$i++;
+   # }
+    #return 0;
+#}
 
 # find_in_path ($program)
 #
