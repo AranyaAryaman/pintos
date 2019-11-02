@@ -1,3 +1,4 @@
+
 #include "userprog/process.h"
 #include <debug.h>
 #include <inttypes.h>
@@ -85,10 +86,11 @@ start_process (void *file_name_)
   palloc_free_page (file_name);
   if (!success){
     sema_up (&cur->sema_ready);
+    sema_down (&cur->sema_ack);
+
     enum intr_level old_level = intr_disable ();
     cur->no_yield = true;
     sema_up (&cur->sema_terminated);
-    
     thread_block ();
     intr_set_level (old_level);
 
@@ -97,7 +99,6 @@ start_process (void *file_name_)
 
   cur->load_complete = true;
   sema_up (&cur->sema_ready);
-
 
   /* Start the user process by simulating a return from an
      interrupt, implemented by intr_exit (in
@@ -121,14 +122,15 @@ int
 process_wait (tid_t child_tid UNUSED) 
 {
   struct thread *child = get_child_thread_from_id (child_tid);
+
   /* Either wait has already been called or 
      given tid is not a child of current thread. */
   if (child == NULL) 
     return -1;
-    list_remove (&child->parent_elem);
+  
   sema_down (&child->sema_terminated);
   int status = child->return_status;
-
+  list_remove (&child->parent_elem);
   thread_unblock (child);
 
   return status;
@@ -140,15 +142,18 @@ process_exit (void)
 {
   struct thread *cur = thread_current ();
   uint32_t *pd;
+  struct hash *supp_page_table;
 
-  /* Destroy the current process's page directory and switch back
-     to the kernel-only page directory. */
-  pd = cur->pagedir;
+  /* Close current process's executable file and allow write. */
   if (cur->executable_file)
   {
     file_close (cur->executable_file);
     cur->executable_file = NULL;
   }
+  
+  /* Destroy the current process's page directory and switch back
+     to the kernel-only page directory. */
+  pd = cur->pagedir;
   if (pd != NULL) 
     {
       /* Correct ordering here is crucial.  We must set
@@ -281,8 +286,10 @@ load (const char *cmd_line_input, void (**eip) (void), void **esp)
       printf ("load: %s: open failed\n", file_name);
       goto done; 
     }
-   file_deny_write (file);
+  
+  file_deny_write (file);
   t->executable_file = file;
+  
   /* Read and verify executable header. */
   if (file_read (file, &ehdr, sizeof ehdr) != sizeof ehdr
       || memcmp (ehdr.e_ident, "\177ELF\1\1\1", 7)
@@ -347,7 +354,7 @@ load (const char *cmd_line_input, void (**eip) (void), void **esp)
                   zero_bytes = ROUND_UP (page_offset + phdr.p_memsz, PGSIZE);
                 }
 
-              if (!load_segment (file, file_page, (void *) mem_page,
+              if (!create_spte_file (file, file_page, (void *) mem_page,
                                  read_bytes, zero_bytes, writable))
                 goto done;
             }
@@ -373,7 +380,6 @@ done:
 }
 
 /* load() helpers. */
-
 
 /* Checks whether PHDR describes a valid, loadable segment in
    FILE and returns true if so, false otherwise. */
@@ -482,77 +488,76 @@ setup_stack (void **esp, char *file_name, char *args)
 {
   uint8_t *kpage;
   bool success = false;
-
+  /*
   kpage = frame_alloc (PAL_USER | PAL_ZERO);
   if (kpage != NULL) 
     {
-      success = install_page (((uint8_t *) PHYS_BASE) - PGSIZE, kpage, true);
-      if (success){
-        *esp = PHYS_BASE;
+    success = install_page (((uint8_t *) PHYS_BASE) - PGSIZE, kpage, true);*/
 
-        /* Tokenize the string accross spaces (DELIMITER) */
-        char *token, *save_ptr;
-        int argc = 1;
-        char *argv[LOADER_ARGS_LEN / 2 + 1];
-        argv[0] = file_name;
+  success = grow_stack (((uint8_t *) PHYS_BASE) - PGSIZE);
+  if (success){
+    *esp = PHYS_BASE;
 
-        for (token = strtok_r (args, " ", &save_ptr); token != NULL;
-             token = strtok_r (NULL, " ", &save_ptr))
-        {
-          argv[argc] = token;
-          argc++;
-        }
-        argv[argc] = NULL;
+    /* Tokenize the string accross spaces (DELIMITER) */
+    char *token, *save_ptr;
+    int argc = 1;
+    char *argv[LOADER_ARGS_LEN / 2 + 1];
+    argv[0] = file_name;
 
-        /* Push the args to the stack */
-        int i, bytes_written = 0;
-        char *addr[LOADER_ARGS_LEN / 2 + 1];
-        size_t s;
-        
-        for (i = argc-1; i>=0; i--)
-        {
-          s = (strlen(argv[i]) + 1) * (sizeof (char));
-          *esp -= s;
-          memcpy (*esp, argv[i], s);
-          bytes_written += s;
-          addr[i] = (char *) *esp;
-        }
-        addr[argc] = NULL;
-
-        /* Align the stack pointer location to nearest WORD_SIZE multiple */
-        uint8_t nulls[3] = {0,0,0};
-        s = bytes_written % WORD_SIZE;
-        *esp -= s;
-        memcpy (*esp, nulls, s);
-
-        /* Push addresses of argv array. */
-        for (i = argc; i>=0; i--)
-        {
-          s = (sizeof (char *));
-          *esp -= s;
-          memcpy (*esp, addr + i, s);
-        }
-
-        /* Push argv start address. */
-        char *argv_starting = *esp; 
-        s = sizeof (argv_starting);
-        *esp -= s;
-        memcpy(*esp, &argv_starting, s);
-
-        /* Push argc. */
-        s = sizeof (int);
-        *esp -= s;
-        memcpy (*esp, &argc, s);
-
-        /* Push return address (UNUSED). */
-        argc = 0;
-        s = sizeof (void (*) ());
-        *esp -= s;
-        memcpy (*esp, &argc, s);
-      }
-      else
-        free_frame (kpage);
+    for (token = strtok_r (args, " ", &save_ptr); token != NULL;
+         token = strtok_r (NULL, " ", &save_ptr))
+    {
+      argv[argc] = token;
+      argc++;
     }
+    argv[argc] = NULL;
+
+    /* Push the args to the stack */
+    int i, bytes_written = 0;
+    char *addr[LOADER_ARGS_LEN / 2 + 1];
+    size_t s;
+        
+    for (i = argc-1; i>=0; i--)
+    {
+      s = (strlen(argv[i]) + 1) * (sizeof (char));
+      *esp -= s;
+      memcpy (*esp, argv[i], s);
+      bytes_written += s;
+      addr[i] = (char *) *esp;
+    }
+    addr[argc] = NULL;
+
+    /* Align the stack pointer location to nearest WORD_SIZE multiple */
+    uint8_t nulls[3] = {0,0,0};
+    s = bytes_written % WORD_SIZE;
+    *esp -= s;
+    memcpy (*esp, nulls, s);
+
+    /* Push addresses of argv array. */
+    for (i = argc; i>=0; i--)
+    {
+      s = (sizeof (char *));
+      *esp -= s;
+      memcpy (*esp, addr + i, s);
+    }
+
+    /* Push argv start address. */
+    char *argv_starting = *esp; 
+    s = sizeof (argv_starting);
+    *esp -= s;
+    memcpy(*esp, &argv_starting, s);
+
+    /* Push argc. */
+    s = sizeof (int);
+    *esp -= s;
+    memcpy (*esp, &argc, s);
+
+    /* Push return address (UNUSED). */
+    argc = 0;
+    s = sizeof (void (*) ());
+    *esp -= s;
+    memcpy (*esp, &argc, s);
+  }
   return success;
 }
 
@@ -565,7 +570,7 @@ setup_stack (void **esp, char *file_name, char *args)
    with palloc_get_page().
    Returns true on success, false if UPAGE is already mapped or
    if memory allocation fails. */
- bool
+bool
 install_page (void *upage, void *kpage, bool writable)
 {
   struct thread *t = thread_current ();
@@ -575,4 +580,3 @@ install_page (void *upage, void *kpage, bool writable)
   return (pagedir_get_page (t->pagedir, upage) == NULL
           && pagedir_set_page (t->pagedir, upage, kpage, writable));
 }
-

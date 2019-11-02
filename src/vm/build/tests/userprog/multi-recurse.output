@@ -1,5 +1,5 @@
 Copying tests/userprog/multi-recurse to scratch partition...
-Writing command line to /tmp/QeimCFO97d.dsk...
+Writing command line to /tmp/QpdpQJIeIj.dsk...
 squish-pty bochs -q
 ========================================================================
                        Bochs x86 Emulator 2.5.1
@@ -14,7 +14,7 @@ Base is at: 0xc0031000
 Base is at: 0xc0219000
 free_start is at: 0xc002ff7f
 kernel_pages local var is at: 0xc002ff78
-pools are at: 0xc0113f00, 0xc0113f40
+pools are at: 0xc0113f40, 0xc0113f80
 Calibrating timer...  204,600 loops/s.
 hd0:0: detected 1,008 sector (504 kB) disk, model "Generic 1234", serial "BXHD00011"
 hd0:1: detected 4,032 sector (1 MB) disk, model "Generic 1234", serial "BXHD00012"
@@ -90,13 +90,13 @@ multi-recurse: exit(14)
 (multi-recurse) end 15
 multi-recurse: exit(15)
 Execution of 'multi-recurse 15' complete.
-Timer: 1404 ticks
-Thread: 30 idle ticks, 552 kernel ticks, 825 user ticks
+Timer: 1395 ticks
+Thread: 30 idle ticks, 386 kernel ticks, 982 user ticks
 hd0:0: 0 reads, 0 writes
-hd0:1: 543 reads, 220 writes
+hd0:1: 527 reads, 220 writes
 hd1:0: 107 reads, 2 writes
 hd1:1: 0 reads, 0 writes
 Console: 2853 characters output
 Keyboard: 0 keys pressed
-Exception: 0 page faults
+Exception: 64 page faults
 Powering off...

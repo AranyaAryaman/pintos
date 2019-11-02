@@ -1,2 +1,4 @@
 FAIL
-Run didn't produce any output
+Kernel panic in run: PANIC at ../../userprog/exception.c:101 in kill(): Kernel bug - unexpected interrupt in kernel
+Call stack: 0xc004ddbc
+Translation of call stack:

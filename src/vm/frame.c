@@ -1,10 +1,13 @@
 #include "threads/synch.h"
 #include "threads/palloc.h"
 #include "vm/frame.h"
+#include "vm/page.h"
 #include <malloc.h>
 
 struct list frame_table;
 struct lock frame_table_lock;
+
+static void *frame_alloc (enum palloc_flags);
 
 void
 frame_table_init (void)
@@ -32,7 +35,8 @@ static void
 add_to_frame_table (void *frame, struct spt_entry *spte) {
   struct frame_table_entry *fte =
     (struct frame_table_entry *) malloc (sizeof (struct frame_table_entry));
-lock_acquire (&frame_table_lock);
+
+  lock_acquire (&frame_table_lock);
   fte->frame = frame;
   fte->spte = spte;
   fte->t = thread_current ();
@@ -40,9 +44,8 @@ lock_acquire (&frame_table_lock);
   lock_release (&frame_table_lock);
 }
 
-//TODO:: Make static
 /* Returns kernel virtual address of a kpage taken from user_pool. */
-void *
+static void *
 frame_alloc (enum palloc_flags flags)
 {
   if (flags & PAL_USER == 0)
@@ -61,6 +64,7 @@ frame_alloc (enum palloc_flags flags)
 void
 free_frame (void *frame)
 {
+  //TODO:: remove from frame table
   palloc_free_page (frame);
 }
 

@@ -1,6 +1,6 @@
 Copying tests/vm/page-parallel to scratch partition...
 Copying tests/vm/child-linear to scratch partition...
-Writing command line to /tmp/RyMei9WAPx.dsk...
+Writing command line to /tmp/IA42Xl5MsJ.dsk...
 squish-pty bochs -q
 ========================================================================
                        Bochs x86 Emulator 2.5.1
@@ -15,7 +15,7 @@ Base is at: 0xc0031000
 Base is at: 0xc0219000
 free_start is at: 0xc002ff7f
 kernel_pages local var is at: 0xc002ff78
-pools are at: 0xc0113f00, 0xc0113f40
+pools are at: 0xc0113f40, 0xc0113f80
 Calibrating timer...  204,600 loops/s.
 hd0:0: detected 1,008 sector (504 kB) disk, model "Generic 1234", serial "BXHD00011"
 hd0:1: detected 4,032 sector (1 MB) disk, model "Generic 1234", serial "BXHD00012"
@@ -31,16 +31,23 @@ Executing 'page-parallel':
 (page-parallel) begin
 (page-parallel) exec "child-linear"
 (page-parallel) exec "child-linear"
-(page-parallel) exec "child-linear": FAILED
+(page-parallel) exec "child-linear"
+(page-parallel) exec "child-linear"
+(page-parallel) wait for child 0
+child-linear: exit(-1)
+child-linear: exit(-1)
+child-linear: exit(-1)
+(page-parallel) wait for child 0: FAILED
 page-parallel: exit(1)
 Execution of 'page-parallel' complete.
-Timer: 3325 ticks
-Thread: 30 idle ticks, 331 kernel ticks, 2971 user ticks
+child-linear: exit(-1)
+Timer: 10887 ticks
+Thread: 30 idle ticks, 350 kernel ticks, 10515 user ticks
 hd0:0: 0 reads, 0 writes
-hd0:1: 160 reads, 400 writes
+hd0:1: 175 reads, 400 writes
 hd1:0: 196 reads, 2 writes
 hd1:1: 0 reads, 0 writes
-Console: 1324 characters output
+Console: 1520 characters output
 Keyboard: 0 keys pressed
-Exception: 0 page faults
+Exception: 710 page faults
 Powering off...

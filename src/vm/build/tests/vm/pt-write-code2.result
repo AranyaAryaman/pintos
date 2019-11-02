@@ -1,4 +1,1 @@
-FAIL
-Kernel panic in run: PANIC at ../../userprog/exception.c:101 in kill(): Kernel bug - unexpected interrupt in kernel
-Call stack: 0xc003cdc8
-Translation of call stack:
+PASS
