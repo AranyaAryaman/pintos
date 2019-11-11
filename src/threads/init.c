@@ -92,6 +92,7 @@ main (void)
   malloc_init ();
   paging_init ();
   frame_table_init ();
+
   /* Segmentation. */
 #ifdef USERPROG
   tss_init ();
@@ -118,6 +119,7 @@ main (void)
   disk_init ();
   filesys_init (format_filesys);
 #endif
+  swap_init ();
 
   printf ("Boot complete.\n");
   
@@ -142,7 +144,7 @@ ram_init (void)
      loader, so we have to zero it ourselves.
      The start and end of the BSS segment is recorded by the
      linker as _start_bss and _end_bss.  See kernel.lds. */
-  char _start_bss, _end_bss;
+  extern char _start_bss, _end_bss;
   memset (&_start_bss, 0, &_end_bss - &_start_bss);
 
   /* Get RAM size from loader.  See loader.S. */
@@ -162,9 +164,15 @@ paging_init (void)
 {
   uint32_t *pd, *pt;
   size_t page;
-  char _start, _end_kernel_text;
+  extern char _start, _end_kernel_text;
 
   pd = base_page_dir = palloc_get_page (PAL_ASSERT | PAL_ZERO);
+
+  //DEBUG STATEMENTS
+  printf ("_start and _end_kernel_text are at: %p, %p\n",
+          &_start, &_end_kernel_text);
+  printf ("base_page_dir is at: %p\n", base_page_dir);
+
   pt = NULL;
   for (page = 0; page < ram_pages; page++) 
     {
@@ -182,6 +190,11 @@ paging_init (void)
 
       pt[pte_idx] = pte_create_kernel (vaddr, !in_kernel_text);
     }
+
+  //DEBUG STATEMENTS
+  printf("first pde_idx %d, first pde 0x%08x, first pte 0x%08x\n",
+         pd_no(ptov(0)), pd[pd_no(ptov(0))],
+         pde_get_pt(pd[pd_no(ptov(0))])[0]);
 
   /* Store the physical address of the page directory into CR3
      aka PDBR (page directory base register).  This activates our
@@ -287,7 +300,7 @@ run_task (char **argv)
     //sema_down (&child->sema_ready);
     sema_up (&child->sema_ack);
   }
-
+  
   process_wait (tid);
 #else
   run_test (task);
@@ -428,7 +441,7 @@ power_off (void)
 #ifdef FILESYS
   filesys_done ();
 #endif
-
+  swap_end ();
   print_stats ();
 
   printf ("Powering off...\n");

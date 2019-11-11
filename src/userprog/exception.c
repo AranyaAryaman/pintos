@@ -162,11 +162,15 @@ page_fault (struct intr_frame *f)
       if (spte != NULL && install_load_page (spte))
         loaded = true;
       else if (fault_addr >= f->esp - STACK_HEURISTIC &&
-               grow_stack (fault_addr))
+               grow_stack (fault_addr, false))
         loaded = true;
 
       if (!loaded)
+      {
+        //printf ("\n bool val: %d", fault_addr >= f->esp - STACK_HEURISTIC);
+        //PANIC ("\nPage not Loaded");
         exit (NULL);
+      }
     }
     else
     {
@@ -188,4 +192,3 @@ page_fault (struct intr_frame *f)
     kill (f);
   }
 }
-

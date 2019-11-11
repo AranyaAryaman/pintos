@@ -7,4 +7,6 @@ userprog/syscall.o: ../../userprog/syscall.c ../../userprog/syscall.h \
   ../../lib/kernel/hash.h ../../lib/kernel/list.h ../../filesys/off_t.h \
   ../../filesys/file.h ../../filesys/off_t.h ../../threads/vaddr.h \
   ../../threads/loader.h ../../userprog/pagedir.h \
-  ../../userprog/process.h ../../vm/page.h ../../filesys/filesys.h
+  ../../userprog/process.h ../../vm/page.h ../../filesys/filesys.h \
+  ../../vm/frame.h ../../vm/page.h ../../threads/thread.h \
+  ../../threads/palloc.h

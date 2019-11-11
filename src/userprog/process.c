@@ -1,4 +1,3 @@
-
 #include "userprog/process.h"
 #include <debug.h>
 #include <inttypes.h>
@@ -494,7 +493,7 @@ setup_stack (void **esp, char *file_name, char *args)
     {
     success = install_page (((uint8_t *) PHYS_BASE) - PGSIZE, kpage, true);*/
 
-  success = grow_stack (((uint8_t *) PHYS_BASE) - PGSIZE);
+  success = grow_stack (((uint8_t *) PHYS_BASE) - PGSIZE, false);
   if (success){
     *esp = PHYS_BASE;
 

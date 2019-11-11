@@ -1,6 +1,6 @@
 Copying tests/vm/page-merge-seq to scratch partition...
 Copying tests/vm/child-sort to scratch partition...
-Writing command line to /tmp/PgcSKmFP74.dsk...
+Writing command line to /tmp/GwcXJyiMJz.dsk...
 squish-pty bochs -q
 ========================================================================
                        Bochs x86 Emulator 2.5.1
@@ -15,7 +15,10 @@ Base is at: 0xc0031000
 Base is at: 0xc0219000
 free_start is at: 0xc002ff7f
 kernel_pages local var is at: 0xc002ff78
-pools are at: 0xc0113f40, 0xc0113f80
+pools are at: 0xc0114fc0, 0xc0115000
+_start and _end_kernel_text are at: 0xc0100000, 0xc0113000
+base_page_dir is at: 0xc0031000
+first pde_idx 768, first pde 0x00032007, first pte 0x00000003
 Calibrating timer...  204,600 loops/s.
 hd0:0: detected 1,008 sector (504 kB) disk, model "Generic 1234", serial "BXHD00011"
 hd0:1: detected 4,032 sector (1 MB) disk, model "Generic 1234", serial "BXHD00012"
@@ -31,27 +34,50 @@ Executing 'page-merge-seq':
 (page-merge-seq) begin
 (page-merge-seq) init
 (page-merge-seq) sort chunk 0
-Page fault at 0x804d000: not present error writing page in kernel context.
-Interrupt 0x0e (#PF Page-Fault Exception) at eip=0xc0104ea0
- cr2=0804d000 error=00000002
- eax=c0113960 ebx=c0113960 ecx=000000a0 edx=000001f0
- esi=c01139cc edi=0804d000 esp=c011396c ebp=c004cea4
- cs=0008 ds=0010 es=0010 ss=ced4
-Kernel PANIC at ../../userprog/exception.c:101 in kill(): Kernel bug - unexpected interrupt in kernel
-Call stack: 0xc004cdbcPage fault at 0x65: not present error reading page in kernel context.
-Interrupt 0x0e (#PF Page-Fault Exception) at eip=0xc010618f
- cr2=00000065 error=00000000
- eax=00000065 ebx=00000065 ecx=c004cce8 edx=000003d4
- esi=c010f21b edi=c0110e65 esp=c01105db ebp=c004cd7c
- cs=0008 ds=0010 es=0010 ss=cdbc
-Kernel PANIC recursion at ../../userprog/exception.c:101 in kill().
-Timer: 4045 ticks
-Thread: 30 idle ticks, 306 kernel ticks, 3709 user ticks
+child-sort: exit(123)
+(page-merge-seq) sort chunk 1
+child-sort: exit(123)
+(page-merge-seq) sort chunk 2
+child-sort: exit(123)
+(page-merge-seq) sort chunk 3
+child-sort: exit(123)
+(page-merge-seq) sort chunk 4
+child-sort: exit(123)
+(page-merge-seq) sort chunk 5
+child-sort: exit(123)
+(page-merge-seq) sort chunk 6
+child-sort: exit(123)
+(page-merge-seq) sort chunk 7
+child-sort: exit(123)
+(page-merge-seq) sort chunk 8
+child-sort: exit(123)
+(page-merge-seq) sort chunk 9
+child-sort: exit(123)
+(page-merge-seq) sort chunk 10
+child-sort: exit(123)
+(page-merge-seq) sort chunk 11
+child-sort: exit(123)
+(page-merge-seq) sort chunk 12
+child-sort: exit(123)
+(page-merge-seq) sort chunk 13
+child-sort: exit(123)
+(page-merge-seq) sort chunk 14
+child-sort: exit(123)
+(page-merge-seq) sort chunk 15
+child-sort: exit(123)
+(page-merge-seq) merge
+(page-merge-seq) verify
+(page-merge-seq) success, buf_idx=1,032,192
+(page-merge-seq) end
+page-merge-seq: exit(0)
+Execution of 'page-merge-seq' complete.
+Timer: 31953 ticks
+Thread: 30 idle ticks, 486 kernel ticks, 31441 user ticks
 hd0:0: 0 reads, 0 writes
-hd0:1: 156 reads, 666 writes
+hd0:1: 4831 reads, 4572 writes
 hd1:0: 201 reads, 2 writes
-hd1:1: 0 reads, 0 writes
-Console: 1993 characters output
+hd1:1: 56 reads, 240 writes
+Console: 2344 characters output
 Keyboard: 0 keys pressed
-Exception: 263 page faults
+Exception: 564 page faults
 Powering off...

@@ -1,4 +1,3 @@
-
 #include "threads/thread.h"
 #include <debug.h>
 #include <stddef.h>
@@ -671,7 +670,7 @@ thread_get_recent_cpu (void)
 {
   return _TO_INT_NEAREST (_MULTIPLY_INT (thread_current ()->recent_cpu, 100));
 }
-
+
 /* Idle thread.  Executes when no other thread is ready to run.
    The idle thread is initially put on the ready list by
    thread_start().  It will be scheduled once initially, at which
@@ -1020,7 +1019,6 @@ get_child_thread_from_id (int id)
   return child;
 }
 
-
 /* Offset of `stack' member within `struct thread'.
    Used by switch.S, which can't figure it out on its own. */
 uint32_t thread_stack_ofs = offsetof (struct thread, stack);

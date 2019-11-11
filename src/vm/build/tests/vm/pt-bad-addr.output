@@ -1,5 +1,5 @@
 Copying tests/vm/pt-bad-addr to scratch partition...
-Writing command line to /tmp/hoz52BUXL5.dsk...
+Writing command line to /tmp/bt8h3YD8E1.dsk...
 squish-pty bochs -q
 ========================================================================
                        Bochs x86 Emulator 2.5.1
@@ -14,7 +14,10 @@ Base is at: 0xc0031000
 Base is at: 0xc0219000
 free_start is at: 0xc002ff7f
 kernel_pages local var is at: 0xc002ff78
-pools are at: 0xc0113f40, 0xc0113f80
+pools are at: 0xc0114fc0, 0xc0115000
+_start and _end_kernel_text are at: 0xc0100000, 0xc0113000
+base_page_dir is at: 0xc0031000
+first pde_idx 768, first pde 0x00032007, first pte 0x00000003
 Calibrating timer...  204,600 loops/s.
 hd0:0: detected 1,008 sector (504 kB) disk, model "Generic 1234", serial "BXHD00011"
 hd0:1: detected 4,032 sector (1 MB) disk, model "Generic 1234", serial "BXHD00012"
@@ -29,13 +32,13 @@ Executing 'pt-bad-addr':
 (pt-bad-addr) begin
 pt-bad-addr: exit(-1)
 Execution of 'pt-bad-addr' complete.
-Timer: 307 ticks
-Thread: 30 idle ticks, 235 kernel ticks, 45 user ticks
+Timer: 316 ticks
+Thread: 30 idle ticks, 241 kernel ticks, 48 user ticks
 hd0:0: 0 reads, 0 writes
 hd0:1: 59 reads, 198 writes
 hd1:0: 96 reads, 2 writes
 hd1:1: 0 reads, 0 writes
-Console: 1145 characters output
+Console: 1298 characters output
 Keyboard: 0 keys pressed
 Exception: 6 page faults
 Powering off...

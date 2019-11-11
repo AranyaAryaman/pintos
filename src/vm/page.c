@@ -1,11 +1,13 @@
 #include "vm/page.h"
 #include <malloc.h>
+#include <bitmap.h>
 #include "threads/synch.h"
 #include "threads/thread.h"
 #include "threads/vaddr.h"
 #include "threads/palloc.h"
 #include "userprog/process.h"
 #include "filesys/file.h"
+#include "vm/frame.h"
 
 static struct spt_entry* create_spte ();
 static bool install_load_file (struct spt_entry *);
@@ -75,6 +77,8 @@ create_spte ()
   spte->frame = NULL;
   spte->upage = NULL;
   spte->is_in_swap = false;
+  spte->idx = BITMAP_ERROR;
+  spte->pinned = false;
   return spte;
 }
 
@@ -172,10 +176,15 @@ create_spte_file (struct file *file, off_t ofs, uint8_t *upage,
 static bool
 install_load_file (struct spt_entry *spte)
 {
+  lock_acquire (&evict_lock);
   void *frame = get_frame_for_page (PAL_USER, spte);
+  ASSERT (frame != NULL);
 
   if (frame == NULL)
+  {
+    lock_release (&evict_lock);
     return false;
+  }
 
   /* Load this page. */
   lock_acquire (&file_lock);
@@ -186,6 +195,7 @@ install_load_file (struct spt_entry *spte)
   if (read_bytes != (int) spte->page_read_bytes)
   {
     free_frame (frame);
+    lock_release (&evict_lock);
     return false; 
   }
   memset (frame + spte->page_read_bytes, 0, spte->page_zero_bytes);
@@ -194,9 +204,11 @@ install_load_file (struct spt_entry *spte)
   if (!install_page (spte->upage, frame, spte->writable)) 
   {
     free_frame (frame);
+    lock_release (&evict_lock);
     return false; 
   }
   spte->frame = frame;
+  lock_release (&evict_lock);
   return true;
 }
 
@@ -209,22 +221,32 @@ install_load_mmap (struct spt_entry *spte)
 static bool
 install_load_swap (struct spt_entry *spte)
 {
+  lock_acquire (&evict_lock);
   void *frame = get_frame_for_page (PAL_USER | PAL_ZERO, spte);
-
+  ASSERT (frame != NULL);
+  
   if (frame == NULL)
+  {
+    lock_release (&evict_lock);
     return false;
+  }
 
   if (install_page (spte->upage, frame, true))
   {
     spte->frame = frame;
-    if (!spte->is_in_swap)
-      return true;
-    else
-      return false; //TODO:: swap_in
+    if (spte->is_in_swap) /* Add empty page (stack growth). */
+    {
+      swap_in (spte);
+      spte->is_in_swap = false;
+      spte->idx = BITMAP_ERROR;
+    }
+    lock_release (&evict_lock);
+    return true;
   }
   else
     free_frame (frame);
 
+  lock_release (&evict_lock);
   return false;
 }
 
@@ -308,7 +330,7 @@ void destroy_spt (struct hash *supp_page_table){
 }
 
 bool
-grow_stack (void *uaddr)
+grow_stack (void *uaddr, bool pinned)
 {
   void *upage = pg_round_down (uaddr);
 
@@ -316,10 +338,13 @@ grow_stack (void *uaddr)
     return false;
   
   struct spt_entry *spte = create_spte_code (upage);
+  lock_acquire (&pin_lock);
+  spte->pinned = pinned;
+  lock_release (&pin_lock);
   return install_load_page (spte);
 }
 
-/* spte is not NULL and is loaded i.e. a frame exists for it.*/
+/* spte is not NULL and is loaded i.e. a frame exists for it. */
 bool
 write_to_disk (struct spt_entry *spte)
 {
@@ -335,4 +360,3 @@ write_to_disk (struct spt_entry *spte)
   }
   return true;
 }
-
